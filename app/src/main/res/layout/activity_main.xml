@@ -12,6 +12,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="45dp"
+        android:inputType="phone"
         android:hint="目标手机号"
         tools:layout_editor_absoluteX="143dp"
         tools:layout_editor_absoluteY="71dp" />
