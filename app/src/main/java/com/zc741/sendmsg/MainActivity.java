@@ -1,14 +1,20 @@
 package com.zc741.sendmsg;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
@@ -17,7 +23,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import java.sql.Time;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +30,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
+    String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
     private EditText mPhoneNumber;
     private int frequency = 1000;// 毫秒数
     private Timer timer;
@@ -65,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         send.setOnClickListener(this);
         stop.setOnClickListener(this);
+
+        registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
     }
 
     @Override
@@ -100,18 +108,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void sendMsg() {
-        String sendMsg = message() + "测试 测试 测试";
+        String sendMsg = message() + " 测试 测试 测试";
         System.out.println("send msg" + sendMsg);
+
         SmsManager smsManager = SmsManager.getDefault();
+        Intent intent = new Intent(SENT_SMS_ACTION);
+        PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+
         if (sendMsg.length() <= 70) {
-            smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sendMsg, null, null);
+            smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sendMsg, sentIntent, null);
         } else {
             List<String> smsDivs = smsManager.divideMessage(sendMsg);
             for (String sms : smsDivs) {
-                smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sms, null, null);
+                smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sms, sentIntent, null);
             }
         }
     }
+
+    private BroadcastReceiver sendMessageBroadcast = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (getResultCode()) {
+                case Activity.RESULT_OK:
+                    System.out.println("=============短信发送成功============");
+                    break;
+                default:
+                    System.out.println("=============短信发送失败============");
+                    break;
+            }
+        }
+    };
 
     public void setTimerTask() {
         timer.schedule(new TimerTask() {
@@ -152,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             timer.cancel();
         }
+
+        unregisterReceiver(sendMessageBroadcast);
     }
 
     private void isPermission() {
