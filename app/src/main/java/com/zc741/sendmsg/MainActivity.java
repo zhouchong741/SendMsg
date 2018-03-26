@@ -38,20 +38,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RadioButton mOneFifth;
     private RadioButton mOne;
     private RadioButton mFive;
+    private Button mSendBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button send = (Button) findViewById(R.id.send);
+        mSendBtn = (Button) findViewById(R.id.send);
         Button stop = (Button) findViewById(R.id.stop);
         mPhoneNumber = (EditText) findViewById(R.id.phone_number);
-
         mRadioGroup = (RadioGroup) findViewById(R.id.set_frequency);
         mOneFifth = (RadioButton) findViewById(R.id.one_fifth);
         mOne = (RadioButton) findViewById(R.id.one);
         mFive = (RadioButton) findViewById(R.id.five);
+
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
@@ -67,11 +68,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        // 检查权限
         isPermission();
 
-        send.setOnClickListener(this);
+        // 设置监听
+        mSendBtn.setOnClickListener(this);
         stop.setOnClickListener(this);
 
+        // 注册发送广播
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
     }
 
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mOneFifth.setEnabled(true);
                     mOne.setEnabled(true);
                     mFive.setEnabled(true);
+                    mSendBtn.setEnabled(true);
                 }
                 break;
         }
@@ -100,15 +105,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mOneFifth.setEnabled(false);
             mOne.setEnabled(false);
             mFive.setEnabled(false);
-
+            mSendBtn.setEnabled(false);
             timer = new Timer();
             setTimerTask();
         }
     }
 
-
     private void sendMsg() {
-        String sendMsg = message() + " 测试 测试 测试";
+        String sendMsg = currentTime() + " 测试 测试 测试";
         System.out.println("send msg" + sendMsg);
 
         SmsManager smsManager = SmsManager.getDefault();
@@ -125,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    // 短信发送成功广播
     private BroadcastReceiver sendMessageBroadcast = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -139,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    // TimerTask
     public void setTimerTask() {
         timer.schedule(new TimerTask() {
             @Override
@@ -150,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }, 100, frequency);
     }
 
+    // Handler
     private Handler doActionHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -165,7 +172,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    public Long message() {
+    // 毫秒值
+    public Long currentTime() {
         Long time = System.currentTimeMillis();
         return time;
     }
@@ -178,10 +186,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             timer.cancel();
         }
-
         unregisterReceiver(sendMessageBroadcast);
     }
 
+    // 权限检查
     private void isPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_MESSAGE);
