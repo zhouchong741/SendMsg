@@ -1,6 +1,7 @@
 package com.zc741.sendmsg;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -171,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     // Handler
+    @SuppressLint("HandlerLeak")
     private Handler doActionHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
