@@ -174,8 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 毫秒值
     public Long currentTime() {
-        Long time = System.currentTimeMillis();
-        return time;
+        return System.currentTimeMillis();
     }
 
     @Override
