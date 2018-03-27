@@ -83,7 +83,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.send:
-                check();
+                if (mPhoneNumber.getText().toString().isEmpty()) {
+                    Toast.makeText(this, "目标手机号错误", Toast.LENGTH_SHORT).show();
+                } else {
+                    // 设置 RadioButton 不可点击
+                    mOneFifth.setEnabled(false);
+                    mOne.setEnabled(false);
+                    mFive.setEnabled(false);
+                    mSendBtn.setEnabled(false);
+                    timer = new Timer();
+                    setTimerTask();
+                }
                 break;
             case R.id.stop:
                 if (timer != null) {
@@ -94,20 +104,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mSendBtn.setEnabled(true);
                 }
                 break;
-        }
-    }
-
-    private void check() {
-        if (mPhoneNumber.getText().toString().isEmpty()) {
-            Toast.makeText(this, "目标手机号错误", Toast.LENGTH_SHORT).show();
-        } else {
-            // 设置 RadioButton 不可点击
-            mOneFifth.setEnabled(false);
-            mOne.setEnabled(false);
-            mFive.setEnabled(false);
-            mSendBtn.setEnabled(false);
-            timer = new Timer();
-            setTimerTask();
         }
     }
 
