@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
     private EditText mPhoneNumber;
     private int frequency = 1000;// 毫秒数
+    private int sendCount = 0;
     private Timer timer;
     private RadioGroup mRadioGroup;
     private RadioButton mOneFifth;
@@ -117,10 +118,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (sendMsg.length() <= 70) {
             smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sendMsg, sentIntent, null);
+            sendLimit();
         } else {
             List<String> smsDivs = smsManager.divideMessage(sendMsg);
             for (String sms : smsDivs) {
                 smsManager.sendTextMessage(mPhoneNumber.getText().toString(), null, sms, sentIntent, null);
+                sendLimit();
+            }
+        }
+    }
+
+    public void sendLimit(){
+        sendCount++;
+        if (frequency < 5000) {
+            if (sendCount > 9) {
+                timer.cancel();
+                Toast.makeText(this, "发送短信次数过快,暂停下", Toast.LENGTH_SHORT).show();
+                mOneFifth.setEnabled(true);
+                mOne.setEnabled(true);
+                mFive.setEnabled(true);
+                mSendBtn.setEnabled(true);
+                sendCount=0;
             }
         }
     }
