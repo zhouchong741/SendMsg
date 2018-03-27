@@ -45,13 +45,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSendBtn = (Button) findViewById(R.id.send);
-        Button stop = (Button) findViewById(R.id.stop);
-        mPhoneNumber = (EditText) findViewById(R.id.phone_number);
-        mRadioGroup = (RadioGroup) findViewById(R.id.set_frequency);
-        mOneFifth = (RadioButton) findViewById(R.id.one_fifth);
-        mOne = (RadioButton) findViewById(R.id.one);
-        mFive = (RadioButton) findViewById(R.id.five);
+        mSendBtn = findViewById(R.id.send);
+        Button stop = findViewById(R.id.stop);
+        mPhoneNumber = findViewById(R.id.phone_number);
+        mRadioGroup = findViewById(R.id.set_frequency);
+        mOneFifth = findViewById(R.id.one_fifth);
+        mOne = findViewById(R.id.one);
+        mFive = findViewById(R.id.five);
 
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -180,9 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (timer == null) {
-            System.out.println("do nothing");
-        } else {
+        if (timer != null) {
             timer.cancel();
         }
         unregisterReceiver(sendMessageBroadcast);
@@ -192,8 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void isPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_MESSAGE);
-        } else {
-            System.out.println("do nothing");
         }
     }
 
@@ -201,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == MY_PERMISSIONS_REQUEST_SEND_MESSAGE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                System.out.println("已授权");
             } else {
                 Toast.makeText(this, "发送短信权限获取失败，请重新获取", Toast.LENGTH_SHORT).show();
             }
