@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void sendLimit(){
+    public void sendLimit() {
         sendCount++;
         if (frequency < 5000) {
             if (sendCount > 9) {
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mOne.setEnabled(true);
                 mFive.setEnabled(true);
                 mSendBtn.setEnabled(true);
-                sendCount=0;
+                sendCount = 0;
             }
         }
     }
