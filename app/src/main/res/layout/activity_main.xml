@@ -16,7 +16,6 @@
         tools:layout_editor_absoluteX="143dp"
         tools:layout_editor_absoluteY="71dp" />
 
-
     <RadioGroup
         android:id="@+id/set_frequency"
         android:layout_width="200dp"

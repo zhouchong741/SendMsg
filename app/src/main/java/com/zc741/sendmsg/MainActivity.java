@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
     }
 
-
     private void initView() {
         mSendBtn = findViewById(R.id.send);
         mStop = findViewById(R.id.stop);
@@ -111,8 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             JSONObject jsonObject = new JSONObject(stringData);
             JSONArray jsonArray = jsonObject.getJSONArray("data");
             Gson gson = new Gson();
-            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
-            }.getType());
+            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {}.getType());
         } catch (JSONException e) {
             e.printStackTrace();
         }
