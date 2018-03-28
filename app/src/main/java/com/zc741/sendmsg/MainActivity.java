@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
@@ -41,14 +45,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RadioButton mOne;
     private RadioButton mFive;
     private Button mSendBtn;
+    private Button mStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initView();
+
+        // getServerInfo
+        getServerInfo();
+
+        // 检查权限
+        isPermission();
+
+        // 设置监听
+        mSendBtn.setOnClickListener(this);
+        mStop.setOnClickListener(this);
+
+        // 注册发送广播
+        registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
+    }
+
+    private void initView() {
         mSendBtn = findViewById(R.id.send);
-        Button stop = findViewById(R.id.stop);
+        mStop = findViewById(R.id.stop);
         mPhoneNumber = findViewById(R.id.phone_number);
         mRadioGroup = findViewById(R.id.set_frequency);
         mOneFifth = findViewById(R.id.one_fifth);
@@ -69,16 +91,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+    }
 
-        // 检查权限
-        isPermission();
-
-        // 设置监听
-        mSendBtn.setOnClickListener(this);
-        stop.setOnClickListener(this);
-
-        // 注册发送广播
-        registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
+    private void getServerInfo() {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder().get().url("").build();
     }
 
     @Override
