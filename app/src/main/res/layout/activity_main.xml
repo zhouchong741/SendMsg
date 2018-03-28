@@ -5,15 +5,14 @@
     android:layout_height="match_parent"
     tools:context="com.zc741.sendmsg.MainActivity">
 
-    <EditText
+    <Button
         android:id="@+id/phone_number"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="45dp"
-        android:inputType="phone"
-        android:hint="目标手机号"
+        android:text="模拟手机号数据"
         tools:layout_editor_absoluteX="143dp"
         tools:layout_editor_absoluteY="71dp" />
 
