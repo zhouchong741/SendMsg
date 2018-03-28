@@ -1,4 +1,4 @@
-package com.zc741.sendmsg;
+package com.zc741.sendmsg.utils;
 
 /**
  * 描述：
