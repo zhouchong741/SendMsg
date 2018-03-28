@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="45dp"
-        android:text="模拟手机号数据"
+        android:text="@string/phone_number"
         tools:layout_editor_absoluteX="143dp"
         tools:layout_editor_absoluteY="71dp" />
 
@@ -26,18 +26,18 @@
         android:layout_centerHorizontal="true" >
         <RadioButton
             android:id="@+id/one_fifth"
-            android:text="5/1s"
+            android:text="@string/one_fifth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <RadioButton
             android:id="@+id/one"
-            android:text="1/1s"
+            android:text="@string/one"
             android:checked="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <RadioButton
             android:id="@+id/five"
-            android:text="1/5s"
+            android:text="@string/five"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RadioGroup>
@@ -55,13 +55,13 @@
             android:id="@+id/send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="发送" />
+            android:text="@string/send" />
 
         <Button
             android:id="@+id/stop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="停止" />
+            android:text="@string/stop" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">SendMsg</string>
+    <string name="one_fifth">5/1s</string>
+    <string name="one">1/1s</string>
+    <string name="five">1/5s</string>
+    <string name="send">发送</string>
+    <string name="stop">停止</string>
+    <string name="phone_number">模拟手机号数据</string>
 </resources>
