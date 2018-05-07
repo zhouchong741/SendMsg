@@ -337,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    // 设置获取未发送短信接口频率
+    // 设置获取未发送短信接口频率 5/1(秒/次)
     public void setSentTimerTask() {
         mSentTimer.schedule(new TimerTask() {
             @Override
