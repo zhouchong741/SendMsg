@@ -378,6 +378,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (timer != null) {
             timer.cancel();
         }
+        if (mSentTimer != null) {
+            mSentTimer.cancel();
+        }
         unregisterReceiver(sendMessageBroadcast);
     }
 
