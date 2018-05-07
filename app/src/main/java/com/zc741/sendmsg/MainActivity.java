@@ -33,7 +33,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         initView();
 
-        //getServerInfo();
+//        getServerInfo();
         getAssetsInfo();
 
         // 检查权限
@@ -112,7 +114,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             JSONObject jsonObject = new JSONObject(stringData);
             JSONArray jsonArray = jsonObject.getJSONArray("data");
             Gson gson = new Gson();
-            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {}.getType());
+            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
+            }.getType());
+
+            // 将 messageId 存储起来
+            Map<String, Object> map = new HashMap<>();
+            for (int i = 0; i < mList.size(); i++) {
+                map.put(String.valueOf(i), mList.get(i).messageId);
+            }
+            System.out.println(map);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -120,8 +130,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // server
     private void getServerInfo() {
+        String token = "1dnstfg68rgqh13ol1femh4g8cl";
+        String maxMessage = "10";
         OkHttpClient okHttpClient = new OkHttpClient();
-        Request request = new Request.Builder().get().url(HttpUrls.makeUrl(HttpUrls.GET_INFO, HttpUrls.YIMI)).build();
+        Request request = new Request.Builder().get().url(HttpUrls.makeUrl(HttpUrls.UNSENT + "?token=" + token + "&maxMessages=" + maxMessage, HttpUrls.YIMI)).build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -130,7 +142,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                System.out.println(response.toString());
+                //System.out.println(response.body().string());
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(response.body().string());
+                    JSONArray jsonArray = jsonObject.getJSONArray("data");
+                    Gson gson = new Gson();
+                    mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
+                    }.getType());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
     }
@@ -168,12 +191,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
         if (mList.get(sendCount).getContent().length() <= 70) {
-            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNumber()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+//            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
             //sendLimit();
         } else {
             List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
             for (String sms : smsDivs) {
-                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNumber()), null, sms, sentIntent, null);
+//                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, sms, sentIntent, null);
                 //sendLimit();
             }
         }

@@ -7,15 +7,25 @@ package com.zc741.sendmsg.bean;
  */
 
 public class PhoneNumber {
-    public long phoneNumber;
+    public String phoneNo;
+    public int messageId;
     public String content;
 
-    public long getPhoneNumber() {
-        return phoneNumber;
+
+    public int getMessageId() {
+        return messageId;
     }
 
-    public void setPhoneNumber(long phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setMessageId(int messageId) {
+        this.messageId = messageId;
+    }
+
+    public String getPhoneNo() {
+        return phoneNo;
+    }
+
+    public void setPhoneNo(String phoneNo) {
+        this.phoneNo = phoneNo;
     }
 
     public String getContent() {
@@ -26,8 +36,9 @@ public class PhoneNumber {
         this.content = content;
     }
 
-    public PhoneNumber(long phoneNumber, String content) {
-        this.phoneNumber = phoneNumber;
+    public PhoneNumber(String phoneNo, String content, int messageId) {
+        this.phoneNo = phoneNo;
         this.content = content;
+        this.messageId = messageId;
     }
 }

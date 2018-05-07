@@ -8,12 +8,21 @@ package com.zc741.sendmsg.utils;
 
 public class HttpUrls {
 
-    public static final String SERVER_HOST = "http://www.zc741.com/";
+    public static final String SERVER_HOST = "http://t.immi-api.immistudy.com/";
 
     public static final String GET_INFO = "";
 
-
     public static final String YIMI = "yimi";
+
+    /**
+     * 获取未发送的短信 GET
+     */
+    public static final String  UNSENT = "rest/sms/unsent";
+
+    /**
+     * 修改短信的状态为已发送 POST
+     */
+    public static final String SENT = "rest/sms/sent";
 
     public static String makeUrl(String url, String tag) {
         String result = "";
