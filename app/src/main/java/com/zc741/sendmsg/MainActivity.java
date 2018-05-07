@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<PhoneNumber> mList;
     private ArrayList<Integer> mMessageIdList;
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private Timer mSentTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +83,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // 注册发送广播
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
+
+        // 设置获取未发送短信接口频率
+        mSentTimer = new Timer();
+        setSentTimerTask();
     }
 
     private void initView() {
@@ -325,6 +330,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (msgId) {
                 case 1:
                     sendMsg();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    // 设置获取未发送短信接口频率
+    public void setSentTimerTask() {
+        mSentTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Message message = new Message();
+                message.what = 1;
+                sentHandler.sendMessage(message);
+
+            }
+        }, 100, 1000 * 5);
+    }
+
+    @SuppressLint("HandlerLeak")
+    private Handler sentHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int msgId = msg.what;
+            switch (msgId) {
+                case 1:
+                    System.out.println("getServerInfo");
+//                    getServerInfo();
                     break;
                 default:
                     break;

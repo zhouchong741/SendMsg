@@ -8,9 +8,17 @@ package com.zc741.sendmsg.bean;
 
 public class PhoneNumber {
     public String phoneNo;
+    public String iddCode;
     public int messageId;
     public String content;
 
+    public String getIddCode() {
+        return iddCode;
+    }
+
+    public void setIddCode(String iddCode) {
+        this.iddCode = iddCode;
+    }
 
     public int getMessageId() {
         return messageId;
@@ -36,8 +44,9 @@ public class PhoneNumber {
         this.content = content;
     }
 
-    public PhoneNumber(String phoneNo, String content, int messageId) {
+    public PhoneNumber(String phoneNo, String content, String iddCode, int messageId) {
         this.phoneNo = phoneNo;
+        this.iddCode = iddCode;
         this.content = content;
         this.messageId = messageId;
     }
