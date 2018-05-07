@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * 描述：
@@ -12,20 +13,33 @@ import java.util.Map;
  */
 public class HttpUtil {
 
-    public static RequestParam getParams( RequestParam params){
-        params.put("appKey", Constants.APPKEY);
-        params.put("timeStamp", String.valueOf(TimeUtil.timeStamp() / 1000));
-        params.put("deviceId", "");
-        String randomString = SignUtils.getRandomString(32);
-        params.put("nonceStr", randomString);
+    public static RequestParam getParams() {
+        RequestParam params = new RequestParam();
+        params.put("clientId", Constants.CLIENTID);
+        params.put("clientSecret", Constants.CLIENTSECRET);
+        params.put("deviceId", Constants.DEVICEID);
+        String randomString = getRandomString(32);
+        params.put("nonce", randomString);
         String paraTemp = HttpUtil.createParaString(HttpUtil.paraFilter(params.get()));
         String sign = MD5Utils.MD5Encode(paraTemp, "UTF-8").toUpperCase();
         params.put("sign", sign);
-
         return params;
     }
 
-
+    // for sent
+    public static String forSentParams() {
+        RequestParam params = new RequestParam();
+        params.put("clientId", Constants.CLIENTID);
+        params.put("clientSecret", Constants.CLIENTSECRET);
+        params.put("deviceId", Constants.DEVICEID);
+        String randomString = getRandomString(32);
+        params.put("nonce", randomString);
+        String paraTemp = HttpUtil.createParaString(HttpUtil.paraFilter(params.get()));
+        String sign = MD5Utils.MD5Encode(paraTemp, "UTF-8").toUpperCase();
+        params.put("sign", sign);
+        String sentParams = HttpUtil.createParaString(params.get());
+        return sentParams;
+    }
 
     // 排序
     public static String createParaString(Map<String, String> params) {
@@ -60,4 +74,18 @@ public class HttpUtil {
         }
         return result;
     }
+
+    // 随机字符串
+    public static String getRandomString(int length) { //length表示生成字符串的长度
+        String base = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        int number = 0;
+        for (int i = 0; i < length; i++) {
+            number = random.nextInt(base.length());
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
+    }
+
 }

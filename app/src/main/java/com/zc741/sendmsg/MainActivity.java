@@ -27,23 +27,30 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.zc741.sendmsg.bean.PhoneNumber;
 import com.zc741.sendmsg.utils.HttpUrls;
+import com.zc741.sendmsg.utils.HttpUtil;
+import com.zc741.sendmsg.utils.RequestParam;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static com.zc741.sendmsg.utils.HttpUtil.forSentParams;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -60,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mSendBtn;
     private Button mStop;
     private List<PhoneNumber> mList;
+    private ArrayList<Integer> mMessageIdList;
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +76,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         initView();
-
-//        getServerInfo();
-        getAssetsInfo();
 
         // 检查权限
         isPermission();
@@ -118,11 +124,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }.getType());
 
             // 将 messageId 存储起来
-            Map<String, Object> map = new HashMap<>();
+            mMessageIdList = new ArrayList();
             for (int i = 0; i < mList.size(); i++) {
-                map.put(String.valueOf(i), mList.get(i).messageId);
+                mMessageIdList.add(mList.get(i).messageId);
             }
-            System.out.println(map);
+            System.out.println(mMessageIdList);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -130,39 +136,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // server
     private void getServerInfo() {
-        String token = "1dnstfg68rgqh13ol1femh4g8cl";
         String maxMessage = "10";
-        OkHttpClient okHttpClient = new OkHttpClient();
-        Request request = new Request.Builder().get().url(HttpUrls.makeUrl(HttpUrls.UNSENT + "?token=" + token + "&maxMessages=" + maxMessage, HttpUrls.YIMI)).build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                System.out.println(call.toString() + e.toString());
-            }
+        RequestParam param = HttpUtil.getParams();
+        param.put("maxMessages", maxMessage);
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                //System.out.println(response.body().string());
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = new JSONObject(response.body().string());
-                    JSONArray jsonArray = jsonObject.getJSONArray("data");
-                    Gson gson = new Gson();
-                    mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
-                    }.getType());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+        OkHttpUtils
+                .get()
+                .url(HttpUrls.makeUrl(HttpUrls.UNSENT, HttpUrls.YIMI))
+                .params(param.get())
+                .build()
+                .execute(new StringCallback() {
+                    @Override
+                    public void onError(Call call, Exception e, int id) {
+                        System.out.println("error === " + e);
+                    }
 
-            }
-        });
+                    @Override
+                    public void onResponse(String response, int id) {
+                        JSONObject jsonObject = null;
+                        try {
+                            jsonObject = new JSONObject(response);
+                            JSONArray jsonArray = jsonObject.getJSONArray("data");
+                            Gson gson = new Gson();
+                            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
+                            }.getType());
+
+                            // 将 messageId 存储起来
+                            mMessageIdList = new ArrayList();
+                            for (int i = 0; i < mList.size(); i++) {
+                                mMessageIdList.add(mList.get(i).messageId);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.phone_number:
-                Toast.makeText(this, "模拟5条手机号成功", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "模拟5条手机号成功", Toast.LENGTH_SHORT).show();
+//                getAssetsInfo();
+                getServerInfo();
                 break;
             case R.id.send:
                 // 设置 RadioButton 不可点击
@@ -181,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mFive.setEnabled(true);
                     mSendBtn.setEnabled(true);
                 }
+                updateMessageIds();
                 break;
         }
     }
@@ -236,6 +254,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
                     System.out.println("=============短信发送成功============");
+                    // messageId 更新状态
+                    if (!mMessageIdList.isEmpty()) {
+                        updateMessageIds();
+                    }
+
                     break;
                 default:
                     System.out.println("=============短信发送失败============");
@@ -243,6 +266,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
+
+    // 更新messageId
+    private void updateMessageIds() {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody requestBody = RequestBody.create(mediaType, mMessageIdList.toString());
+        final Request request = new Request
+                .Builder()
+                .post(requestBody)
+                .url(HttpUrls.makeUrl(HttpUrls.SENT + "?" + forSentParams(), HttpUrls.YIMI))
+                .build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                System.out.println("error ==== " + e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String result = response.body().string();
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(result);
+                    int statusCode = jsonObject.getInt("statusCode");
+                    if (statusCode == 200) {
+                        System.out.println("=====" + jsonObject.get("message") + "=====");
+                    } else {
+                        System.out.println("=====" + jsonObject.get("message") + "=====");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+    }
 
     // TimerTask
     public void setTimerTask() {
