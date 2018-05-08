@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.zc741.sendmsg.utils.HttpUrls;
+import com.zc741.sendmsg.http.HttpUrls;
 
 public class SelectEnvActivity extends AppCompatActivity implements View.OnClickListener {
 

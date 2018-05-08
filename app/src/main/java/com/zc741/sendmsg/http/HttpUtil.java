@@ -1,4 +1,8 @@
-package com.zc741.sendmsg.utils;
+package com.zc741.sendmsg.http;
+
+import com.zc741.sendmsg.utils.Constants;
+import com.zc741.sendmsg.utils.MD5Utils;
+import com.zc741.sendmsg.utils.RequestParam;
 
 import java.util.ArrayList;
 import java.util.Collections;

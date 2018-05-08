@@ -20,8 +20,6 @@ import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,8 +27,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.zc741.sendmsg.bean.PhoneNumber;
-import com.zc741.sendmsg.utils.HttpUrls;
-import com.zc741.sendmsg.utils.HttpUtil;
+import com.zc741.sendmsg.http.HttpUrls;
+import com.zc741.sendmsg.http.HttpUtil;
+import com.zc741.sendmsg.utils.ParseAssets;
 import com.zc741.sendmsg.utils.RequestParam;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -55,7 +54,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static com.zc741.sendmsg.utils.HttpUtil.forSentParams;
+import static com.zc741.sendmsg.http.HttpUtil.forSentParams;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 

@@ -4,10 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * 请求参数类
- * Created by kisen on 2017/4/17.
- */
 public class RequestParam {
 
     private Map<String, String> mParams;

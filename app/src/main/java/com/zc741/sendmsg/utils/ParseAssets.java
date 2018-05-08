@@ -1,4 +1,4 @@
-package com.zc741.sendmsg;
+package com.zc741.sendmsg.utils;
 
 import android.content.Context;
 import android.content.res.AssetManager;
