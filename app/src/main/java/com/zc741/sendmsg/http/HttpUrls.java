@@ -16,7 +16,7 @@ public class HttpUrls {
     /**
      * 正式环境
      */
-    public static final String SERVER_HOST = "http://immi-mall.immistudy.com/";
+    public static final String SERVER_HOST = "http://immi-api.immistudy.com/";
 
     public static final String YIMI_TEST = "yimi_test";
     public static final String YIMI_SERVER = "yimi_server";
