@@ -8,16 +8,23 @@ package com.zc741.sendmsg.utils;
 
 public class HttpUrls {
 
-    public static final String SERVER_HOST = "http://t.immi-api.immistudy.com/";
+    /**
+     * 测试环境
+     */
+    public static final String TEST_HOST = "http://t.immi-api.immistudy.com/";
 
-    public static final String GET_INFO = "";
+    /**
+     * 正式环境
+     */
+    public static final String SERVER_HOST = "http://immi-mall.immistudy.com/";
 
-    public static final String YIMI = "yimi";
+    public static final String YIMI_TEST = "yimi_test";
+    public static final String YIMI_SERVER = "yimi_server";
 
     /**
      * 获取未发送的短信 GET
      */
-    public static final String  UNSENT = "rest/sms/unsent";
+    public static final String UNSENT = "rest/sms/unsent";
 
     /**
      * 修改短信的状态为已发送 POST
@@ -27,7 +34,10 @@ public class HttpUrls {
     public static String makeUrl(String url, String tag) {
         String result = "";
         switch (tag) {
-            case YIMI:
+            case YIMI_TEST:
+                result = TEST_HOST + url;
+                break;
+            case YIMI_SERVER:
                 result = SERVER_HOST + url;
                 break;
         }

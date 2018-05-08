@@ -66,15 +66,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mStop;
     private List<PhoneNumber> mList;
     private ArrayList<Integer> mMessageIdList;
-    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private Timer mSentTimer;
     private Button mStart;
     private TextView mTipsTv;
+    private String mTag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 获取tag
+        mTag = getIntent().getStringExtra("tag");
 
         initView();
 
@@ -105,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mStop = findViewById(R.id.stop);
         mPhoneNumber = findViewById(R.id.phone_number);
         mTipsTv = findViewById(R.id.tips);
+
         // 设置监听
         mPhoneNumber.setOnClickListener(this);
         mStart.setOnClickListener(this);
@@ -140,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         OkHttpUtils
                 .get()
-                .url(HttpUrls.makeUrl(HttpUrls.UNSENT, HttpUrls.YIMI))
+                .url(HttpUrls.makeUrl(HttpUrls.UNSENT, mTag))
                 .params(param.get())
                 .build()
                 .execute(new StringCallback() {
@@ -167,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             sendMsg();
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            mTipsTv.setText("当前环境不可用");
+                            mSentTimer.cancel();
                         }
                     }
                 });
@@ -185,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 //                CrashReport.testJavaCrash();
                 break;
+
         }
     }
 
@@ -244,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Request request = new Request
                 .Builder()
                 .post(requestBody)
-                .url(HttpUrls.makeUrl(HttpUrls.SENT + "?" + forSentParams(), HttpUrls.YIMI))
+                .url(HttpUrls.makeUrl(HttpUrls.SENT + "?" + forSentParams(), mTag))
                 .build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
