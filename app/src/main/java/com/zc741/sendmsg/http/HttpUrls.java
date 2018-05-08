@@ -18,8 +18,8 @@ public class HttpUrls {
      */
     public static final String SERVER_HOST = "http://immi-api.immistudy.com/";
 
-    public static final String YIMI_TEST = "yimi_test";
-    public static final String YIMI_SERVER = "yimi_server";
+    public static final String IMMI_TEST = "yimi_test";
+    public static final String IMMI_SERVER = "yimi_server";
 
     /**
      * 获取未发送的短信 GET
@@ -34,10 +34,10 @@ public class HttpUrls {
     public static String makeUrl(String url, String tag) {
         String result = "";
         switch (tag) {
-            case YIMI_TEST:
+            case IMMI_TEST:
                 result = TEST_HOST + url;
                 break;
-            case YIMI_SERVER:
+            case IMMI_SERVER:
                 result = SERVER_HOST + url;
                 break;
         }

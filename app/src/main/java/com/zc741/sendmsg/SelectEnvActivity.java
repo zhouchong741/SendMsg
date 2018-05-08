@@ -12,7 +12,7 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
 
     private Button mTestBtn;
     private Button mServerBtn;
-    private String TAG_HOST = HttpUrls.YIMI_TEST;
+    private String TAG_HOST = HttpUrls.IMMI_TEST;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +32,12 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
 
             case R.id.test_btn:
                 System.out.println("=====测试环境======");
-                TAG_HOST = HttpUrls.YIMI_TEST;
+                TAG_HOST = HttpUrls.IMMI_TEST;
                 startActivity(new Intent(this, MainActivity.class).putExtra("tag", TAG_HOST));
                 break;
             case R.id.server_btn:
                 System.out.println("=====生成环境======");
-                TAG_HOST = HttpUrls.YIMI_SERVER;
+                TAG_HOST = HttpUrls.IMMI_SERVER;
                 startActivity(new Intent(this, MainActivity.class).putExtra("tag", TAG_HOST));
                 break;
         }
