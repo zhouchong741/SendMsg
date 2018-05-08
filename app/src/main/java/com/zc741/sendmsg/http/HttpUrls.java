@@ -18,8 +18,8 @@ public class HttpUrls {
      */
     public static final String SERVER_HOST = "http://immi-api.immistudy.com/";
 
-    public static final String IMMI_TEST = "yimi_test";
-    public static final String IMMI_SERVER = "yimi_server";
+    public static final String IMMI_TEST = "immi_test";
+    public static final String IMMI_SERVER = "immi_server";
 
     /**
      * 获取未发送的短信 GET

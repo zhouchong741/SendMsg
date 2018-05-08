@@ -60,13 +60,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
-    private Button mPhoneNumber;
     private int sendCount = 0;
-    private Button mStop;
     private List<PhoneNumber> mList;
     private ArrayList<Integer> mMessageIdList;
     private Timer mSentTimer;
-    private Button mStart;
     private TextView mTipsTv;
     private String mTag;
 
@@ -103,15 +100,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initView() {
-        mStart = findViewById(R.id.send);
-        mStop = findViewById(R.id.stop);
-        mPhoneNumber = findViewById(R.id.phone_number);
+        Button start = findViewById(R.id.send);
+        Button stop = findViewById(R.id.stop);
+        Button phoneNumber = findViewById(R.id.phone_number);
         mTipsTv = findViewById(R.id.tips);
 
         // 设置监听
-        mPhoneNumber.setOnClickListener(this);
-        mStart.setOnClickListener(this);
-        mStop.setOnClickListener(this);
+        phoneNumber.setOnClickListener(this);
+        start.setOnClickListener(this);
+        stop.setOnClickListener(this);
     }
 
     // assets
@@ -233,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!mMessageIdList.isEmpty()) {
                         updateMessageIds();
                     }
-
                     break;
                 default:
                     System.out.println("=============短信发送失败============");
