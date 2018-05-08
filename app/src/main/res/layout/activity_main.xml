@@ -17,6 +17,7 @@
         tools:layout_editor_absoluteY="71dp" />
 
     <RadioGroup
+        android:visibility="gone"
         android:id="@+id/set_frequency"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
@@ -53,6 +54,7 @@
 
         <Button
             android:id="@+id/send"
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/send" />
@@ -63,5 +65,14 @@
             android:layout_height="wrap_content"
             android:text="@string/stop" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tips"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="20dp" />
 
 </RelativeLayout>

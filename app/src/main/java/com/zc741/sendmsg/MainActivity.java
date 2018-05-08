@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -57,19 +58,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
     private Button mPhoneNumber;
-    private int frequency = 1000;// 毫秒数
     private int sendCount = 0;
-    private Timer timer;
-    private RadioGroup mRadioGroup;
-    private RadioButton mOneFifth;
-    private RadioButton mOne;
-    private RadioButton mFive;
-    private Button mSendBtn;
     private Button mStop;
     private List<PhoneNumber> mList;
     private ArrayList<Integer> mMessageIdList;
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private Timer mSentTimer;
+    private Button mStart;
+    private TextView mTipsTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,31 +86,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initView() {
-        mSendBtn = findViewById(R.id.send);
+        mStart = findViewById(R.id.send);
         mStop = findViewById(R.id.stop);
         mPhoneNumber = findViewById(R.id.phone_number);
-        mRadioGroup = findViewById(R.id.set_frequency);
-        mOneFifth = findViewById(R.id.one_fifth);
-        mOne = findViewById(R.id.one);
-        mFive = findViewById(R.id.five);
-
-        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
-                if (checkedId == mOneFifth.getId()) {
-                    frequency = 200;
-                } else if (checkedId == mOne.getId()) {
-                    frequency = 1000;
-                } else if (checkedId == mFive.getId()) {
-                    frequency = 5000;
-                } else {
-                    frequency = 1000;
-                }
-            }
-        });
+        mTipsTv = findViewById(R.id.tips);
         // 设置监听
         mPhoneNumber.setOnClickListener(this);
-        mSendBtn.setOnClickListener(this);
+        mStart.setOnClickListener(this);
         mStop.setOnClickListener(this);
     }
 
@@ -133,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (int i = 0; i < mList.size(); i++) {
                 mMessageIdList.add(mList.get(i).messageId);
             }
-            System.out.println(mMessageIdList);
+            sendMsg();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -141,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // server
     private void getServerInfo() {
-        String maxMessage = "10";
+        String maxMessage = "1";// 每次获取一条并更新
         RequestParam param = HttpUtil.getParams();
         param.put("maxMessages", maxMessage);
 
@@ -165,12 +143,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Gson gson = new Gson();
                             mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
                             }.getType());
-
                             // 将 messageId 存储起来
                             mMessageIdList = new ArrayList();
                             for (int i = 0; i < mList.size(); i++) {
                                 mMessageIdList.add(mList.get(i).messageId);
                             }
+                            // 发送短信
+                            sendMsg();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -182,28 +161,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.phone_number:
-//                Toast.makeText(this, "模拟5条手机号成功", Toast.LENGTH_SHORT).show();
-//                getAssetsInfo();
-                getServerInfo();
+                getAssetsInfo();
                 break;
-            case R.id.send:
-                // 设置 RadioButton 不可点击
-                mOneFifth.setEnabled(false);
-                mOne.setEnabled(false);
-                mFive.setEnabled(false);
-                mSendBtn.setEnabled(false);
-                timer = new Timer();
-                setTimerTask();
-                break;
+
             case R.id.stop:
-                if (timer != null) {
-                    timer.cancel();
-                    mOneFifth.setEnabled(true);
-                    mOne.setEnabled(true);
-                    mFive.setEnabled(true);
-                    mSendBtn.setEnabled(true);
+                if (mSentTimer != null) {
+                    mSentTimer.cancel();
                 }
-                updateMessageIds();
                 break;
         }
     }
@@ -213,14 +177,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(SENT_SMS_ACTION);
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
+        if (mMessageIdList.isEmpty()) {
+//            Toast.makeText(this, "暂无未发送短信", Toast.LENGTH_SHORT).show();
+            mTipsTv.setText("暂无未发送短信");
+            return;
+        }
         if (mList.get(sendCount).getContent().length() <= 70) {
-//            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
-            //sendLimit();
+            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
         } else {
             List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
             for (String sms : smsDivs) {
-//                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, sms, sentIntent, null);
-                //sendLimit();
+                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, sms, sentIntent, null);
             }
         }
 
@@ -228,29 +195,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 当相等的时候 表明已经是最后一条短信了
         if (sendCount == mList.size()) {
             sendCount = 0;
-            timer.cancel();
-            mOneFifth.setEnabled(true);
-            mOne.setEnabled(true);
-            mFive.setEnabled(true);
-            mSendBtn.setEnabled(true);
-            Toast.makeText(this, "短信发送完毕", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "短信发送完毕", Toast.LENGTH_SHORT).show();
+            mTipsTv.setText("短信发送完毕");
         }
     }
-
-//    public void sendLimit() {
-//        sendCount++;
-//        if (frequency < 5000) {
-//            if (sendCount > 9) {
-//                timer.cancel();
-//                Toast.makeText(this, "发送短信次数过快,暂停下", Toast.LENGTH_SHORT).show();
-//                mOneFifth.setEnabled(true);
-//                mOne.setEnabled(true);
-//                mFive.setEnabled(true);
-//                mSendBtn.setEnabled(true);
-//                sendCount = 0;
-//            }
-//        }
-//    }
 
     // 短信发送成功广播
     private BroadcastReceiver sendMessageBroadcast = new BroadcastReceiver() {
@@ -308,36 +256,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    // TimerTask
-    public void setTimerTask() {
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Message message = new Message();
-                message.what = 1;
-                doActionHandler.sendMessage(message);
-            }
-        }, 100, frequency);
-    }
-
-    // Handler
-    @SuppressLint("HandlerLeak")
-    private Handler doActionHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            int msgId = msg.what;
-            switch (msgId) {
-                case 1:
-                    sendMsg();
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-
-    // 设置获取未发送短信接口频率 5/1(秒/次)
+    // 设置获取未发送短信接口频率 2/1(秒/次)
     public void setSentTimerTask() {
         mSentTimer.schedule(new TimerTask() {
             @Override
@@ -347,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sentHandler.sendMessage(message);
 
             }
-        }, 100, 1000 * 5);
+        }, 100, 1000);
     }
 
     @SuppressLint("HandlerLeak")
@@ -359,7 +278,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (msgId) {
                 case 1:
                     System.out.println("getServerInfo");
-//                    getServerInfo();
+                    mTipsTv.setText("");
+                    getServerInfo();
                     break;
                 default:
                     break;
@@ -375,9 +295,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (timer != null) {
-            timer.cancel();
-        }
         if (mSentTimer != null) {
             mSentTimer.cancel();
         }

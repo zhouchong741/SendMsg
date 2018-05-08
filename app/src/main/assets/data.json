@@ -8,34 +8,6 @@
       "iddCode": "string",
       "messageId": 1,
       "content": "测试的 测试的"
-    },
-    {
-      "phoneNo": 18817952222,
-      "createdOn": "2018-05-07T02:28:22.255Z",
-      "iddCode": "string",
-      "messageId": 2,
-      "content": "测试的 测试的"
-    },
-    {
-      "phoneNo": 18817953333,
-      "createdOn": "2018-05-07T02:28:22.255Z",
-      "iddCode": "string",
-      "messageId": 3,
-      "content": "测试的 测试的"
-    },
-    {
-      "phoneNo": 18817954444,
-      "createdOn": "2018-05-07T02:28:22.255Z",
-      "iddCode": "string",
-      "messageId": 4,
-      "content": "测试的 测试的"
-    },
-    {
-      "phoneNo": 18817955555,
-      "createdOn": "2018-05-07T02:28:22.255Z",
-      "iddCode": "string",
-      "messageId": 5,
-      "content": "测试的 测试的"
     }
   ]
 }

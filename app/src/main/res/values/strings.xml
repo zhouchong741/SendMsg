@@ -5,5 +5,5 @@
     <string name="five">1/5s</string>
     <string name="send">发送</string>
     <string name="stop">停止</string>
-    <string name="phone_number">模拟手机号数据</string>
+    <string name="phone_number">模拟一条手机号</string>
 </resources>
