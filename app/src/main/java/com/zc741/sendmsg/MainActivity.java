@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // server
     private void getServerInfo() {
+        System.out.println("=========" + currentTime() + "==========");
         String maxMessage = "1";// 每次获取一条并更新
         RequestParam param = HttpUtil.getParams();
         param.put("maxMessages", maxMessage);
@@ -163,8 +164,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             for (int i = 0; i < mList.size(); i++) {
                                 mMessageIdList.add(mList.get(i).messageId);
                             }
-                            // 发送短信
-                            sendMsg();
+                            // 发送短信 如果短信已经存在 则不发送
+                            if (!mList.isEmpty()) {
+                                if (!mMessageIdList.contains(Integer.getInteger(mList.get(0).getIddCode()))) {
+                                    sendMsg();
+                                } else {
+                                    System.out.println("短信已经存在");
+                                }
+                            } else {
+                                mTipsTv.setText("暂无未发送短信");
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                             mTipsTv.setText("当前环境不可用");
@@ -196,17 +205,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(SENT_SMS_ACTION);
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
-        if (mMessageIdList.isEmpty()) {
-//            Toast.makeText(this, "暂无未发送短信", Toast.LENGTH_SHORT).show();
-            mTipsTv.setText("暂无未发送短信");
-            return;
-        }
         if (mList.get(sendCount).getContent().length() <= 70) {
-            smsManager.sendTextMessage(mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            // 判断是否含有+
+            if (mList.get(sendCount).getIddCode().contains("+")) {
+                smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            } else {
+                smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            }
         } else {
             List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
             for (String sms : smsDivs) {
-                smsManager.sendTextMessage(mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                if (mList.get(sendCount).getIddCode().contains("+")) {
+                    smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                } else {
+                    smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                }
             }
         }
 
@@ -266,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } else {
                         System.out.println("=====" + jsonObject.get("message") + "=====");
                     }
+                    System.out.println("=========" + currentTime() + "==========");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -274,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    // 设置获取未发送短信接口频率 2/1(秒/次)
+    // 设置获取未发送短信接口频率 5/1(秒/次)
     public void setSentTimerTask() {
         mSentTimer.schedule(new TimerTask() {
             @Override
@@ -284,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sentHandler.sendMessage(message);
 
             }
-        }, 100, 1000);
+        }, 100, 1000 * 2);
     }
 
     @SuppressLint("HandlerLeak")
