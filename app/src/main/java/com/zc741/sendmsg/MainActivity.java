@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Timer mSentTimer;
     private TextView mTipsTv;
     private String mTag;
+    boolean first = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
         strategy.setUploadProcess(processName == null || processName.equals(packageName));
         CrashReport.initCrashReport(getApplicationContext(), "14521b003c", false, strategy);
+
+        mMessageIdList = new ArrayList();
+
     }
 
     private void initView() {
@@ -138,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String maxMessage = "1";// 每次获取一条并更新
         RequestParam param = HttpUtil.getParams();
         param.put("maxMessages", maxMessage);
-
         OkHttpUtils
                 .get()
                 .url(HttpUrls.makeUrl(HttpUrls.UNSENT, mTag))
@@ -159,15 +163,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Gson gson = new Gson();
                             mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
                             }.getType());
-                            // 将 messageId 存储起来
-                            mMessageIdList = new ArrayList();
-                            for (int i = 0; i < mList.size(); i++) {
-                                mMessageIdList.add(mList.get(i).messageId);
-                            }
+
                             // 发送短信 如果短信已经存在 则不发送
                             if (!mList.isEmpty()) {
-                                if (!mMessageIdList.contains(Integer.getInteger(mList.get(0).getIddCode()))) {
+                                if (!mMessageIdList.contains(mList.get(0).getMessageId()) || first) {
                                     sendMsg();
+                                    // 将 messageId 存储起来
+                                    mMessageIdList.add(mList.get(0).messageId);
                                 } else {
                                     System.out.println("短信已经存在");
                                 }
@@ -275,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     jsonObject = new JSONObject(result);
                     int statusCode = jsonObject.getInt("statusCode");
                     if (statusCode == 200) {
+                        first = false;
                         System.out.println("=====" + jsonObject.get("message") + "=====");
                     } else {
                         System.out.println("=====" + jsonObject.get("message") + "=====");
@@ -288,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    // 设置获取未发送短信接口频率 5/1(秒/次)
+    // 设置获取未发送短信接口频率 2/1(秒/次)
     public void setSentTimerTask() {
         mSentTimer.schedule(new TimerTask() {
             @Override
