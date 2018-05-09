@@ -202,11 +202,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         if (mList.get(sendCount).getContent().length() <= 70) {
-            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            smsManager.sendTextMessage(mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
         } else {
             List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
             for (String sms : smsDivs) {
-                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, sms, sentIntent, null);
+                smsManager.sendTextMessage(mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
             }
         }
 
