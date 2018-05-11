@@ -1,6 +1,5 @@
 package com.zc741.sendmsg;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -8,26 +7,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.zc741.sendmsg.bean.PhoneNumber;
 import com.zc741.sendmsg.bean.SentMessage;
+import com.zc741.sendmsg.db.RealmDao;
 import com.zc741.sendmsg.http.HttpUrls;
 import com.zc741.sendmsg.http.HttpUtil;
 import com.zc741.sendmsg.utils.ParseAssets;
@@ -60,7 +55,6 @@ import static com.zc741.sendmsg.http.HttpUtil.forSentParams;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
     private int sendCount = 0;
     private List<PhoneNumber> mList;
@@ -81,9 +75,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTag = getIntent().getStringExtra("tag");
 
         initView();
-
-        // 检查权限
-        isPermission();
 
         // 注册发送广播
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
@@ -303,16 +294,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // 保存到数据库
     private void saveToSql(List<PhoneNumber> list) {
-        mRealm.beginTransaction();
-        SentMessage sentMessage = mRealm.createObject(SentMessage.class);
-        sentMessage.setMessageId(list.get(0).getMessageId());
-        sentMessage.setIddCode(list.get(0).getIddCode());
-        sentMessage.setPhoneNo(list.get(0).getPhoneNo());
-        sentMessage.setContent(list.get(0).getContent());
-        mRealm.commitTransaction();
-        System.out.println("==========保存了==========");
-
-        mRealm.copyFromRealm(sentMessage);
+        RealmDao realmDao = new RealmDao();
+        boolean isExist = realmDao.isMessageIdExist(list.get(0).getMessageId());
+        if (!isExist) {
+            mRealm.beginTransaction();
+            SentMessage sentMessage = mRealm.createObject(SentMessage.class);
+            sentMessage.setMessageId(list.get(0).getMessageId());
+            sentMessage.setIddCode(list.get(0).getIddCode());
+            sentMessage.setPhoneNo(list.get(0).getPhoneNo());
+            sentMessage.setContent(list.get(0).getContent());
+            mRealm.commitTransaction();
+            System.out.println("==========保存了==========");
+            //mRealm.copyFromRealm(sentMessage);
+        }else {
+            System.out.println("========已经存在数据库了 不再保存========");
+        }
 
     }
 
@@ -360,26 +356,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         unregisterReceiver(sendMessageBroadcast);
         mRealm.close();
-    }
-
-    // 权限检查
-    private void isPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_MESSAGE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_MESSAGE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                System.out.println("已授权");
-            } else {
-                Toast.makeText(this, "发送短信权限获取失败，请重新获取", Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
 

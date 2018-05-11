@@ -12,11 +12,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.zc741.sendmsg.bean.SentMessage;
+import com.zc741.sendmsg.db.RealmDao;
 
 import java.util.List;
-
-import io.realm.Realm;
-import io.realm.RealmResults;
 
 /**
  * 描述：
@@ -38,7 +36,8 @@ public class SentMessageActivity extends AppCompatActivity {
 
         TextView tvEmpty = findViewById(R.id.empty);
         TextView tvTotal = findViewById(R.id.total);
-        mSentMessageList = queryAll();
+        RealmDao realmDao = new RealmDao();
+        mSentMessageList = realmDao.queryAll();
         if (mSentMessageList.size() == 0) {
             tvEmpty.setVisibility(View.VISIBLE);
             tvTotal.setVisibility(View.GONE);
@@ -49,13 +48,6 @@ public class SentMessageActivity extends AppCompatActivity {
         tvTotal.setText("总计: " + mSentMessageList.size());
         SentMessageAdapter adapter = new SentMessageAdapter(mSentMessageList);
         recyclerViewSentMessage.setAdapter(adapter);
-    }
-
-
-    public List<SentMessage> queryAll() {
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<SentMessage> realmResults = realm.where(SentMessage.class).findAll();
-        return realm.copyFromRealm(realmResults);
     }
 
     public class SentMessageAdapter extends RecyclerView.Adapter<SentMessageHolder> {
