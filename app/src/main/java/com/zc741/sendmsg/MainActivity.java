@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.zc741.sendmsg.bean.PhoneNumber;
+import com.zc741.sendmsg.bean.SentMessage;
 import com.zc741.sendmsg.http.HttpUrls;
 import com.zc741.sendmsg.http.HttpUtil;
 import com.zc741.sendmsg.utils.ParseAssets;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.realm.Realm;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -67,13 +69,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mTipsTv;
     private String mTag;
     boolean first = true;
+    private Realm mRealm;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mRealm = Realm.getDefaultInstance();
         // 获取tag
         mTag = getIntent().getStringExtra("tag");
 
@@ -108,12 +111,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button start = findViewById(R.id.send);
         Button stop = findViewById(R.id.stop);
         Button phoneNumber = findViewById(R.id.phone_number);
+        Button sentMessage = findViewById(R.id.sent_message);
         mTipsTv = findViewById(R.id.tips);
 
         // 设置监听
         phoneNumber.setOnClickListener(this);
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
+        sentMessage.setOnClickListener(this);
     }
 
     // assets
@@ -170,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     sendMsg();
                                     // 将 messageId 存储起来
                                     mMessageIdList.add(mList.get(0).messageId);
+                                    // 保存到数据库
+                                    saveToSql(mList);
                                 } else {
                                     System.out.println("短信已经存在");
                                 }
@@ -197,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mSentTimer.cancel();
                 }
 //                CrashReport.testJavaCrash();
+                break;
+            case R.id.sent_message:
+                startActivity(new Intent(this, SentMessageActivity.class));
                 break;
 
         }
@@ -291,6 +301,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    // 保存到数据库
+    private void saveToSql(List<PhoneNumber> list) {
+        mRealm.beginTransaction();
+        SentMessage sentMessage = mRealm.createObject(SentMessage.class);
+        sentMessage.setMessageId(list.get(0).getMessageId());
+        sentMessage.setIddCode(list.get(0).getIddCode());
+        sentMessage.setPhoneNo(list.get(0).getPhoneNo());
+        sentMessage.setContent(list.get(0).getContent());
+        mRealm.commitTransaction();
+        System.out.println("==========保存了==========");
+
+        mRealm.copyFromRealm(sentMessage);
+
+    }
+
     // 设置获取未发送短信接口频率 2/1(秒/次)
     public void setSentTimerTask() {
         mSentTimer.schedule(new TimerTask() {
@@ -334,6 +359,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSentTimer.cancel();
         }
         unregisterReceiver(sendMessageBroadcast);
+        mRealm.close();
     }
 
     // 权限检查
