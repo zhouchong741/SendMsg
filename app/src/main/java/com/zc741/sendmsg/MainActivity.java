@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 } else {
                                     mTipsTv.setText("暂无未发送短信");
                                 }
-                            }else {
+                            } else {
                                 mTipsTv.setText("暂无未发送短信");
                             }
                         } catch (JSONException e) {
