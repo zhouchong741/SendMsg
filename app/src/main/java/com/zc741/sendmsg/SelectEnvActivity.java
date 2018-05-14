@@ -16,9 +16,6 @@ import com.zc741.sendmsg.http.HttpUrls;
 
 public class SelectEnvActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private Button mTestBtn;
-    private Button mServerBtn;
-    private String TAG_HOST = HttpUrls.IMMI_TEST;
     private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
 
     @Override
@@ -26,11 +23,11 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_env);
 
-        mTestBtn = findViewById(R.id.test_btn);
-        mServerBtn = findViewById(R.id.server_btn);
+        Button testBtn = findViewById(R.id.test_btn);
+        Button serverBtn = findViewById(R.id.server_btn);
 
-        mTestBtn.setOnClickListener(this);
-        mServerBtn.setOnClickListener(this);
+        testBtn.setOnClickListener(this);
+        serverBtn.setOnClickListener(this);
 
         isPermission();
     }
@@ -38,10 +35,9 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-
             case R.id.test_btn:
                 System.out.println("=====测试环境======");
-                TAG_HOST = HttpUrls.IMMI_TEST;
+                String TAG_HOST = HttpUrls.IMMI_TEST;
                 startActivity(new Intent(this, MainActivity.class).putExtra("tag", TAG_HOST));
                 break;
             case R.id.server_btn:
@@ -71,6 +67,4 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-
-
 }

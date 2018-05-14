@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     boolean first = true;
     private Realm mRealm;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,16 +72,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mRealm = Realm.getDefaultInstance();
         // 获取tag
         mTag = getIntent().getStringExtra("tag");
-
         initView();
-
         // 注册发送广播
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
-
         // 设置获取未发送短信接口频率
         mSentTimer = new Timer();
         setSentTimerTask();
-
         // bugly
         Context context = getApplicationContext();
         // 获取当前包名
@@ -95,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CrashReport.initCrashReport(getApplicationContext(), "14521b003c", false, strategy);
 
         mMessageIdList = new ArrayList();
-
     }
 
     private void initView() {
@@ -189,7 +183,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.phone_number:
                 getAssetsInfo();
                 break;
-
             case R.id.stop:
                 if (mSentTimer != null) {
                     mSentTimer.cancel();
@@ -199,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.sent_message:
                 startActivity(new Intent(this, SentMessageActivity.class));
                 break;
-
         }
     }
 
@@ -287,7 +279,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
             }
         });
     }
@@ -306,10 +297,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mRealm.commitTransaction();
             System.out.println("==========保存了==========");
             //mRealm.copyFromRealm(sentMessage);
-        }else {
+        } else {
             System.out.println("========已经存在数据库了 不再保存========");
         }
-
     }
 
     // 设置获取未发送短信接口频率 2/1(秒/次)
@@ -320,7 +310,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Message message = new Message();
                 message.what = 1;
                 sentHandler.sendMessage(message);
-
             }
         }, 100, 1000 * 2);
     }

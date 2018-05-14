@@ -1,5 +1,6 @@
 package com.zc741.sendmsg;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,6 +26,7 @@ public class SentMessageActivity extends AppCompatActivity {
 
     private List<SentMessage> mSentMessageList;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +54,7 @@ public class SentMessageActivity extends AppCompatActivity {
 
     public class SentMessageAdapter extends RecyclerView.Adapter<SentMessageHolder> {
 
-        public SentMessageAdapter(List<SentMessage> list) {
+        SentMessageAdapter(List<SentMessage> list) {
             super();
         }
 
@@ -60,15 +62,20 @@ public class SentMessageActivity extends AppCompatActivity {
         @Override
         public SentMessageHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(SentMessageActivity.this).inflate(R.layout.item_sent_message, parent, false);
-            SentMessageHolder holder = new SentMessageHolder(view);
-            return holder;
+            return new SentMessageHolder(view);
         }
 
+        @SuppressLint("SetTextI18n")
         @Override
         public void onBindViewHolder(@NonNull SentMessageHolder holder, int position) {
-            holder.mTvPhoneNo.setText("电话: " + mSentMessageList.get(position).getIddCode() + mSentMessageList.get(position).getPhoneNo());
             holder.mTvMessageId.setText("messageId: " + mSentMessageList.get(position).getMessageId());
+            if (mSentMessageList.get(position).getIddCode().contains("+")) {
+                holder.mTvPhoneNo.setText("电话: " + mSentMessageList.get(position).getIddCode() + mSentMessageList.get(position).getPhoneNo());
+            } else {
+                holder.mTvPhoneNo.setText("电话: " + "+" + mSentMessageList.get(position).getIddCode() + mSentMessageList.get(position).getPhoneNo());
+            }
             holder.mTvContent.setText("内容: " + mSentMessageList.get(position).getContent());
+
         }
 
         @Override
@@ -83,7 +90,7 @@ public class SentMessageActivity extends AppCompatActivity {
         private final TextView mTvMessageId;
         private final TextView mTvContent;
 
-        public SentMessageHolder(View itemView) {
+        SentMessageHolder(View itemView) {
             super(itemView);
             mTvPhoneNo = itemView.findViewById(R.id.phone_number);
             mTvMessageId = itemView.findViewById(R.id.message_id);
