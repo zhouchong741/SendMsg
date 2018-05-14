@@ -91,12 +91,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initView() {
-        Button phoneNumber = findViewById(R.id.phone_number);
         Button sentMessage = findViewById(R.id.sent_message);
         mTipsTv = findViewById(R.id.tips);
 
         // 设置监听
-        phoneNumber.setOnClickListener(this);
         sentMessage.setOnClickListener(this);
     }
 
