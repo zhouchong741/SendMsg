@@ -56,8 +56,6 @@ import static com.zc741.sendmsg.http.HttpUtil.forSentParams;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
-    private int sendCount = 0;
-    private List<PhoneNumber> mList;
     private ArrayList<Integer> mMessageIdList;
     private Timer mSentTimer;
     private TextView mTipsTv;
@@ -93,38 +91,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initView() {
-        Button start = findViewById(R.id.send);
-        Button stop = findViewById(R.id.stop);
         Button phoneNumber = findViewById(R.id.phone_number);
         Button sentMessage = findViewById(R.id.sent_message);
         mTipsTv = findViewById(R.id.tips);
 
         // 设置监听
         phoneNumber.setOnClickListener(this);
-        start.setOnClickListener(this);
-        stop.setOnClickListener(this);
         sentMessage.setOnClickListener(this);
-    }
-
-    // assets
-    private void getAssetsInfo() {
-        String stringData = ParseAssets.getJson("data.json", this);
-        try {
-            JSONObject jsonObject = new JSONObject(stringData);
-            JSONArray jsonArray = jsonObject.getJSONArray("data");
-            Gson gson = new Gson();
-            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
-            }.getType());
-
-            // 将 messageId 存储起来
-            mMessageIdList = new ArrayList();
-            for (int i = 0; i < mList.size(); i++) {
-                mMessageIdList.add(mList.get(i).messageId);
-            }
-            sendMsg();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     // server
@@ -146,26 +119,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onResponse(String response, int id) {
-                        JSONObject jsonObject = null;
+                        JSONObject jsonObject;
                         try {
                             jsonObject = new JSONObject(response);
                             JSONArray jsonArray = jsonObject.getJSONArray("data");
-                            Gson gson = new Gson();
-                            mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
-                            }.getType());
+                            if (!jsonArray.isNull(0)) {
 
-                            // 发送短信 如果短信已经存在 则不发送
-                            if (!mList.isEmpty()) {
-                                if (!mMessageIdList.contains(mList.get(0).getMessageId()) || first) {
-                                    sendMsg();
-                                    // 将 messageId 存储起来
-                                    mMessageIdList.add(mList.get(0).messageId);
-                                    // 保存到数据库
-                                    saveToSql(mList);
+                                Gson gson = new Gson();
+                                PhoneNumber phoneNumber = gson.fromJson(jsonArray.get(0).toString(), PhoneNumber.class);
+                                // 发送短信 如果短信已经存在 则不发送
+                                if (phoneNumber != null) {
+                                    if (!mMessageIdList.contains(phoneNumber.getMessageId())) {
+                                        sendMsg(phoneNumber);
+                                        // 将 messageId 存储起来
+                                        mMessageIdList.add(phoneNumber.messageId);
+                                        // 保存到数据库
+                                        saveToSql(phoneNumber);
+                                    } else {
+                                        System.out.println("短信已经存在");
+                                    }
                                 } else {
-                                    System.out.println("短信已经存在");
+                                    mTipsTv.setText("暂无未发送短信");
                                 }
-                            } else {
+                            }else {
                                 mTipsTv.setText("暂无未发送短信");
                             }
                         } catch (JSONException e) {
@@ -180,50 +156,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.phone_number:
-                getAssetsInfo();
-                break;
-            case R.id.stop:
-                if (mSentTimer != null) {
-                    mSentTimer.cancel();
-                }
-//                CrashReport.testJavaCrash();
-                break;
             case R.id.sent_message:
                 startActivity(new Intent(this, SentMessageActivity.class));
                 break;
         }
     }
 
-    private void sendMsg() {
+    private void sendMsg(PhoneNumber phoneNumber) {
         SmsManager smsManager = SmsManager.getDefault();
         Intent intent = new Intent(SENT_SMS_ACTION);
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
-        if (mList.get(sendCount).getContent().length() <= 70) {
+        if (phoneNumber.getContent().length() <= 70) {
             // 判断是否含有+
-            if (mList.get(sendCount).getIddCode().contains("+")) {
-                smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            if (phoneNumber.getIddCode().contains("+")) {
+                smsManager.sendTextMessage(phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, currentTime() + phoneNumber.getContent(), sentIntent, null);
             } else {
-                smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+                smsManager.sendTextMessage("+" + phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, currentTime() + phoneNumber.getContent(), sentIntent, null);
             }
         } else {
-            List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
+            List<String> smsDivs = smsManager.divideMessage(currentTime() + phoneNumber.getContent());
             for (String sms : smsDivs) {
-                if (mList.get(sendCount).getIddCode().contains("+")) {
-                    smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                if (phoneNumber.getIddCode().contains("+")) {
+                    smsManager.sendTextMessage(phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, sms, sentIntent, null);
                 } else {
-                    smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                    smsManager.sendTextMessage("+" + phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, sms, sentIntent, null);
                 }
             }
-        }
-
-        sendCount++;
-        // 当相等的时候 表明已经是最后一条短信了
-        if (sendCount == mList.size()) {
-            sendCount = 0;
-//            Toast.makeText(this, "短信发送完毕", Toast.LENGTH_SHORT).show();
-            mTipsTv.setText("短信发送完毕");
         }
     }
 
@@ -284,16 +243,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     // 保存到数据库
-    private void saveToSql(List<PhoneNumber> list) {
+    private void saveToSql(PhoneNumber list) {
         RealmDao realmDao = new RealmDao();
-        boolean isExist = realmDao.isMessageIdExist(list.get(0).getMessageId());
+        boolean isExist = realmDao.isMessageIdExist(list.getMessageId());
         if (!isExist) {
             mRealm.beginTransaction();
             SentMessage sentMessage = mRealm.createObject(SentMessage.class);
-            sentMessage.setMessageId(list.get(0).getMessageId());
-            sentMessage.setIddCode(list.get(0).getIddCode());
-            sentMessage.setPhoneNo(list.get(0).getPhoneNo());
-            sentMessage.setContent(list.get(0).getContent());
+            sentMessage.setMessageId(list.getMessageId());
+            sentMessage.setIddCode(list.getIddCode());
+            sentMessage.setPhoneNo(list.getPhoneNo());
+            sentMessage.setContent(list.getContent());
             mRealm.commitTransaction();
             System.out.println("==========保存了==========");
             //mRealm.copyFromRealm(sentMessage);
