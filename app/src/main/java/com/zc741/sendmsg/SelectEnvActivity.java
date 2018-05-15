@@ -46,7 +46,7 @@ public class SelectEnvActivity extends AppCompatActivity implements View.OnClick
                 startActivity(new Intent(this, MainActivity.class).putExtra("tag", TAG_HOST));
                 break;
             case R.id.server_btn:
-                System.out.println("=====生成环境======");
+                System.out.println("=====生产环境======");
                 TAG_HOST = HttpUrls.IMMI_SERVER;
                 startActivity(new Intent(this, MainActivity.class).putExtra("tag", TAG_HOST));
                 break;
