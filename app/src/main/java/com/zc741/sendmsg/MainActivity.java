@@ -168,12 +168,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (phoneNumber.getContent().length() <= 70) {
             // 判断是否含有+
             if (phoneNumber.getIddCode().contains("+")) {
-                smsManager.sendTextMessage(phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, currentTime() + phoneNumber.getContent(), sentIntent, null);
+                smsManager.sendTextMessage(phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, phoneNumber.getContent(), sentIntent, null);
             } else {
-                smsManager.sendTextMessage("+" + phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, currentTime() + phoneNumber.getContent(), sentIntent, null);
+                smsManager.sendTextMessage("+" + phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, phoneNumber.getContent(), sentIntent, null);
             }
         } else {
-            List<String> smsDivs = smsManager.divideMessage(currentTime() + phoneNumber.getContent());
+            List<String> smsDivs = smsManager.divideMessage(phoneNumber.getContent());
             for (String sms : smsDivs) {
                 if (phoneNumber.getIddCode().contains("+")) {
                     smsManager.sendTextMessage(phoneNumber.getIddCode() + phoneNumber.getPhoneNo(), null, sms, sentIntent, null);
