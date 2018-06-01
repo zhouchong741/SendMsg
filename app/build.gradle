@@ -19,7 +19,7 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file("D:\\work\\AndroidProject\\SendMsg\\sendmsg.jks")
+            storeFile file("E:\\Android\\Application\\SendMsg\\sendmsg.jks")
             storePassword "sendmsg"
             keyAlias "sendmsg"
             keyPassword "sendmsg"
