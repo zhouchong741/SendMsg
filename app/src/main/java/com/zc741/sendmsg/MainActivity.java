@@ -1,6 +1,5 @@
 package com.zc741.sendmsg;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -8,25 +7,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.zc741.sendmsg.bean.PhoneNumber;
+import com.zc741.sendmsg.bean.SentMessage;
+import com.zc741.sendmsg.db.RealmDao;
 import com.zc741.sendmsg.http.HttpUrls;
 import com.zc741.sendmsg.http.HttpUtil;
 import com.zc741.sendmsg.utils.ParseAssets;
@@ -46,6 +42,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.realm.Realm;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -58,7 +55,6 @@ import static com.zc741.sendmsg.http.HttpUtil.forSentParams;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final int MY_PERMISSIONS_REQUEST_SEND_MESSAGE = 1;
     String SENT_SMS_ACTION = "SENT_SMS_ACTION";// 发送的广播
     private int sendCount = 0;
     private List<PhoneNumber> mList;
@@ -66,27 +62,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Timer mSentTimer;
     private TextView mTipsTv;
     private String mTag;
+    boolean first = true;
+    private Realm mRealm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mRealm = Realm.getDefaultInstance();
         // 获取tag
         mTag = getIntent().getStringExtra("tag");
-
         initView();
-
-        // 检查权限
-        isPermission();
-
         // 注册发送广播
         registerReceiver(sendMessageBroadcast, new IntentFilter(SENT_SMS_ACTION));
-
         // 设置获取未发送短信接口频率
         mSentTimer = new Timer();
         setSentTimerTask();
-
         // bugly
         Context context = getApplicationContext();
         // 获取当前包名
@@ -97,18 +88,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CrashReport.UserStrategy strategy = new CrashReport.UserStrategy(context);
         strategy.setUploadProcess(processName == null || processName.equals(packageName));
         CrashReport.initCrashReport(getApplicationContext(), "14521b003c", false, strategy);
+
+        mMessageIdList = new ArrayList();
     }
 
     private void initView() {
         Button start = findViewById(R.id.send);
         Button stop = findViewById(R.id.stop);
         Button phoneNumber = findViewById(R.id.phone_number);
+        Button sentMessage = findViewById(R.id.sent_message);
         mTipsTv = findViewById(R.id.tips);
 
         // 设置监听
         phoneNumber.setOnClickListener(this);
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
+        sentMessage.setOnClickListener(this);
     }
 
     // assets
@@ -134,10 +129,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // server
     private void getServerInfo() {
+        System.out.println("=========" + currentTime() + "==========");
         String maxMessage = "1";// 每次获取一条并更新
         RequestParam param = HttpUtil.getParams();
         param.put("maxMessages", maxMessage);
-
         OkHttpUtils
                 .get()
                 .url(HttpUrls.makeUrl(HttpUrls.UNSENT, mTag))
@@ -158,13 +153,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Gson gson = new Gson();
                             mList = gson.fromJson(jsonArray.toString(), new TypeToken<List<PhoneNumber>>() {
                             }.getType());
-                            // 将 messageId 存储起来
-                            mMessageIdList = new ArrayList();
-                            for (int i = 0; i < mList.size(); i++) {
-                                mMessageIdList.add(mList.get(i).messageId);
+
+                            // 发送短信 如果短信已经存在 则不发送
+                            if (!mList.isEmpty()) {
+                                if (!mMessageIdList.contains(mList.get(0).getMessageId()) || first) {
+                                    sendMsg();
+                                    // 将 messageId 存储起来
+                                    mMessageIdList.add(mList.get(0).messageId);
+                                    // 保存到数据库
+                                    saveToSql(mList);
+                                } else {
+                                    System.out.println("短信已经存在");
+                                }
+                            } else {
+                                mTipsTv.setText("暂无未发送短信");
                             }
-                            // 发送短信
-                            sendMsg();
                         } catch (JSONException e) {
                             e.printStackTrace();
                             mTipsTv.setText("当前环境不可用");
@@ -180,14 +183,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.phone_number:
                 getAssetsInfo();
                 break;
-
             case R.id.stop:
                 if (mSentTimer != null) {
                     mSentTimer.cancel();
                 }
 //                CrashReport.testJavaCrash();
                 break;
-
+            case R.id.sent_message:
+                startActivity(new Intent(this, SentMessageActivity.class));
+                break;
         }
     }
 
@@ -196,17 +200,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(SENT_SMS_ACTION);
         PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
-        if (mMessageIdList.isEmpty()) {
-//            Toast.makeText(this, "暂无未发送短信", Toast.LENGTH_SHORT).show();
-            mTipsTv.setText("暂无未发送短信");
-            return;
-        }
         if (mList.get(sendCount).getContent().length() <= 70) {
-            smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            // 判断是否含有+
+            if (mList.get(sendCount).getIddCode().contains("+")) {
+                smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            } else {
+                smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, currentTime() + mList.get(sendCount).getContent(), sentIntent, null);
+            }
         } else {
             List<String> smsDivs = smsManager.divideMessage(currentTime() + mList.get(sendCount).getContent());
             for (String sms : smsDivs) {
-                smsManager.sendTextMessage(String.valueOf(mList.get(sendCount).getPhoneNo()), null, sms, sentIntent, null);
+                if (mList.get(sendCount).getIddCode().contains("+")) {
+                    smsManager.sendTextMessage(mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                } else {
+                    smsManager.sendTextMessage("+" + mList.get(sendCount).getIddCode() + mList.get(sendCount).getPhoneNo(), null, sms, sentIntent, null);
+                }
             }
         }
 
@@ -262,16 +270,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     jsonObject = new JSONObject(result);
                     int statusCode = jsonObject.getInt("statusCode");
                     if (statusCode == 200) {
+                        first = false;
                         System.out.println("=====" + jsonObject.get("message") + "=====");
                     } else {
                         System.out.println("=====" + jsonObject.get("message") + "=====");
                     }
+                    System.out.println("=========" + currentTime() + "==========");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
             }
         });
+    }
+
+    // 保存到数据库
+    private void saveToSql(List<PhoneNumber> list) {
+        RealmDao realmDao = new RealmDao();
+        boolean isExist = realmDao.isMessageIdExist(list.get(0).getMessageId());
+        if (!isExist) {
+            mRealm.beginTransaction();
+            SentMessage sentMessage = mRealm.createObject(SentMessage.class);
+            sentMessage.setMessageId(list.get(0).getMessageId());
+            sentMessage.setIddCode(list.get(0).getIddCode());
+            sentMessage.setPhoneNo(list.get(0).getPhoneNo());
+            sentMessage.setContent(list.get(0).getContent());
+            mRealm.commitTransaction();
+            System.out.println("==========保存了==========");
+            //mRealm.copyFromRealm(sentMessage);
+        } else {
+            System.out.println("========已经存在数据库了 不再保存========");
+        }
     }
 
     // 设置获取未发送短信接口频率 2/1(秒/次)
@@ -282,9 +310,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Message message = new Message();
                 message.what = 1;
                 sentHandler.sendMessage(message);
-
             }
-        }, 100, 1000);
+        }, 100, 1000 * 2);
     }
 
     @SuppressLint("HandlerLeak")
@@ -317,26 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSentTimer.cancel();
         }
         unregisterReceiver(sendMessageBroadcast);
-    }
-
-    // 权限检查
-    private void isPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_MESSAGE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_MESSAGE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                System.out.println("已授权");
-            } else {
-                Toast.makeText(this, "发送短信权限获取失败，请重新获取", Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mRealm.close();
     }
 
 
