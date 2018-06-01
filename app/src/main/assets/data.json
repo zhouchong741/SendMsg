@@ -3,9 +3,9 @@
   "message": "ok",
   "data": [
     {
-      "phoneNo": 18817951111,
+      "phoneNo": "+61422433444",
       "createdOn": "2018-05-07T02:28:22.255Z",
-      "iddCode": "string",
+      "iddCode": "+61",
       "messageId": 1,
       "content": "测试的 测试的"
     }
